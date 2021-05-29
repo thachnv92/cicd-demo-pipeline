@@ -1,0 +1,38 @@
+pipeline{
+    agent any
+
+    tools {
+        terraform 'terraform-15'    
+    }
+    
+    stages {
+        stage('Git Checkout'){
+            steps {
+                git credentialsId: '2f5a1ea7-220b-4a02-95bf-68d05fdccb3f', url: 'https://github.com/thachnv92/cicd-demo-provisioning'
+            }
+        }
+        stage('Terraform Init'){
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'svmc', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform init'
+                }
+                
+            }
+        }
+        stage('Terraform Plan'){
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'svmc', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform plan -input=false -out tfplan > tfplan.txt'
+                    sh 'terraform show -no-color tfplan >> tfplan.txt'
+                }
+            }
+        }
+        stage('Terraform Apply'){
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'svmc', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform apply --auto-approve'
+                }
+            }
+        }
+    }
+}
