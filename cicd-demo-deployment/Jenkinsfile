@@ -1,0 +1,20 @@
+pipeline{
+    agent any
+
+    tools {
+        terraform 'terraform-15'    
+    }
+    
+    stages {
+        stage('Git Checkout'){
+            steps {
+                git credentialsId: '2f5a1ea7-220b-4a02-95bf-68d05fdccb3f', url: 'https://github.com/thachnv92/cicd-demo-deployment'
+            }
+        }
+        stage('Execute Ansible'){
+            steps {
+                ansiblePlaybook credentialsId: 'privatekey_deployserver', disableHostKeyChecking: true, extras: '--extra-vars "host=deploy1"', installation: 'ansible2', inventory: 'inventory/demo.ini', playbook: 'install-haproxy.yml'
+            }
+        }
+    }
+}
